@@ -1,0 +1,173 @@
+---
+title: 'Functions'
+author: "Naomi Tague"
+date: "January, 2021"
+output:
+  slidy_presentation: default
+  ioslides_presentation: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo =TRUE)
+knitr::opts_chunk$set(error=TRUE)
+library(tidyverse)
+```
+
+
+## STEPS IN Program Design
+
+1. Clearly define your goal in words/figures as precisely as possible what do you want your program to do
+      + decide on modules
+      + for each module, write a contract - inputs, outputs and what it will do
+    
+
+2. Implement AND document as you go
+3. Test
+4. Refine
+5. Test again
+6. Create User Documentation and Distribute
+
+
+---
+
+## A simple function example
+
+Contract
+
+*Input*: Reservoir height (m) and flow rate (m3/sec) (as a single value in time or a time series)
+
+*Output*: Instantaneous power generation (W/s)  (as a single value or value for each reservoir height and flow rate combination)
+
+*Parameters*: K_{Eff} reservoir efficiency, ρ (density of water), g (acceleration due to gravity)
+
+What the function will do - compute power using the following equation - *body* of the function 
+
+$P = ρ * h * r * g * K_{Eff}$
+
+P is Power in watts, ρ is the density of water (~1000 $kg/m^3$), h is height in meters, r is flow rate in cubic meters per second, g is acceleration due to gravity of 9.8 $m/s^2$, $K_{Eff}$ is a coefficient of efficiency ranging from 0 to 1.
+
+---
+
+# Implementing Functions in R
+
+Format for a basic function in R
+
+
+\#' documentation that describes inputs, outputs and what the function does
+
+FUNCTION NAME = function(inputs, parameters) {
+
+body of the function (manipulation of inputs)
+
+return(values to return)
+
+}
+
+# Implementing Functions in R
+
+In R, inputs and parameters are treated the same; but it is useful to think about them separately in designing the model - collectively they are sometimes referred to as arguments
+
+ALWAYS USE Meaningful names for your function, its parameters and variables calculated within the function
+
+
+* In R we combine inputs/parameters in the first line of the function definition
+
+* we can provide "default" values that can be overwritten by the function user
+
+* Body includes all calculations between { and }
+  + anything inside the body is not "seen" by the workspace so you can re-use variables
+  
+* *return* tells R what the output is
+
+# Here's our example
+
+```{r eval=TRUE, echo=TRUE  }
+
+# function definition
+power_gen_orig = function(height, flow, rho=1000, g=9.8, Keff=0.8) {
+result = rho * height * flow * g * Keff
+return(result)
+}
+```
+
+---
+
+# Using the function and scoping
+
+To use the function we substitute "actual" values for each argument (parameter and inputs)
+(unless there are defaults)
+
+R assumes that arguments are in the order that they were specified in the function definition - unless
+you refer to them by name
+
+```{r eval=TRUE, echo=TRUE  }
+
+power_gen_orig(20,1)
+
+power_gen_orig(height=20, flow=1)
+
+power_gen_orig(flow=1, height=20)
+
+# change the defaults
+# what if efficiencies is less
+
+power_gen_orig(20,1, Keff=0.2)
+
+```
+
+---
+
+# Scoping
+
+
+The scope of a variable in a program defines where it can be “seen” Variables defined inside a function cannot be “seen” outside of that function
+
+There are advantages to this - the interior of the building block does not ‘interfere’ with other parts of the program
+
+See below
+
+```{r eval=TRUE, echo=TRUE  }
+
+# specifying function name without () shows code
+# try it for internal R functions
+power_gen_orig
+
+# use the function and save the results
+reservoir1 = power_gen_orig(height=4, flow=7)
+
+reservoir2 = power_gen_orig(height=4, flow=7, Keff=0.2)
+
+# note that internal variables are not defined so these R statements will FAIL
+height
+Keff
+results
+
+# only the outputs are in your workspace
+reservoir1
+reservoir2
+
+
+```
+
+---
+
+# Some conventions (helpful later in the course)
+
+* Always write your function in a text editor and then copy into R
+
+* By convention we name files with functions in them by the name of the function.R
+e.g. **power_gen.R**
+
+* you can have R read a text file by source(“power_gen.R”) - make sure you are in the right working directory
+
+* keep organized by keeping all functions in a subdirectory called *R*
+
+* Include comments both in the body of the function and at the top  - there is a particular style of adding comments to the top of the function that we will use later to generate automatic documentation - so useful to start to follow it, more or less, now - see **power_gen.R** for the style
+
+
+
+*  Eventually we will want our function to be part of a package (a library of many functions) - to create a package you must use this convention (name.R) place all function in a directory called “R”
+
+
