@@ -158,7 +158,7 @@ reservoir2
 * Always write your function in a text editor and then copy into R
 
 * By convention we name files with functions in them by the name of the function.R
-e.g. **power_gen.R**
+e.g. **power_gen_orig.R**
 
 * you can have R read a text file by source(“power_gen.R”) - make sure you are in the right working directory
 
