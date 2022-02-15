@@ -1,0 +1,52 @@
+---
+title: "Sampling_example.Rmd"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo =TRUE)
+knitr::opts_chunk$set(error=TRUE)
+library(tidyverse)
+
+```
+Lets imagine you've called your auto power function "autopower" and saved
+it in the R directory of your workspace as 
+**autopower.R**
+
+You could use any name you want - you will just need to change the name in the example code below
+
+# Generating data for the function and iterating over that data
+
+
+
+Example use: Imagine we want to see how much power is generated given scenario where we know the mean and standard deviation of vehicles speeds
+
+Here's how we would do this
+
+Note documentation in the R markdown - and use of variables names 
+
+```{r sampling}
+
+source("R/autopower.R")
+
+# generate sample speeds from a distribution
+nsample = 100
+speeds = rnorm(mean=25, sd=4, n=nsample)
+
+# Step 1  create data frame to store results 
+# how many simulations, what do you want to keep
+
+#create a dataframe that has rows for each model run
+# columns for height, flowrate and power estimate
+results = data.frame(speed=speeds, power=NA)
+
+head(results)
+
+# if you only have one input and everything else is the same, R is smart enough
+# to create a set of outputs
+results$power = autopower(V=speeds, A=25, m=20000)
+
+# ALWAYS look at your results to make sure it make sense
+ggplot(results, aes(speed, power/1000))+geom_point()+labs(x="speed in m/s", y="power in kW")
+ggplot(results, aes(x="Across Speed",y=power/1000))+geom_boxplot()+labs(y="power in kW")
+
+```

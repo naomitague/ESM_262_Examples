@@ -1,0 +1,240 @@
+---
+title: 'Error Checking '
+author: "Naomi Tague"
+date: "January, 2021"
+output:
+  slidy_presentation:
+   highlight: pygments
+  html_document: default
+  pdf_document: default
+  ioslides_presentation:
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo =TRUE)
+knitr::opts_chunk$set(error=TRUE)
+library(tidyverse)
+```
+
+
+
+# Review
+
+* We are using functions as a way to design modular programs (that might involve many functions that are linked together)
+
+* We always start with clearly defininng our goal for the whole program and each piece (and diagramming this if needed for programs made of multiple functions)
+
+* Always write your function in a text editor and then copy into R
+
+* By convention we name files with functions in them by the name of the function.R
+e.g. **power_gen_orig.R**
+
+* you can have R read a text file by source(“power_gen.R”) - make sure you are in the right working directory
+
+* keep organized by keeping all functions in a subdirectory called *R*
+
+*  Eventually we will want our function to be part of a package (a library of many functions) - to create a package you must use this convention (name.R) place all function in a directory called “R”
+
+
+
+
+```{r}
+
+source("R/power_gen_orig.R")
+```
+
+
+# Multiple inputs 
+
+For a function with more than one input  R can handle multiple values
+
+
+**IF** 
+
+* all (multiple) inputs have the same number of values 
+* all other inputs or parameters have a single value
+
+
+For other cases, additional instructions would need to be included in the function to help R understand what to do
+
+
+Consider our reservoir function  ( **R/power_gen_orig.R**)
+
+```{r sampling2}
+
+#source("R/power_gen_orig.R")
+
+power_gen_orig= function(height, flow, rho=1000, g=9.8, Keff=0.8) {
+  
+  # calculate power
+  result = rho * height * flow * g * Keff
+  return(result)
+}
+
+# single
+power_gen_orig(height=2, flow=2)
+
+# multiple heights
+# generate a structure to store results
+# consider all heights from 1 to 100
+
+resv_results = data.frame(height=seq(from=1, to=100))
+
+# compute power generated for EACH height
+resv_results$power = power_gen_orig(resv_results$height, flow=2)
+
+# plot
+ggplot(resv_results, aes(height, power))+geom_point(size=3)+labs(y="Power (KW)", x="Height (m)")
+
+# random combinations of height and flow
+# use rnorm to sample from a normal distribution
+resv_results$height = rnorm(mean=10, sd=2, n=100)
+resv_results$flow = rnorm(mean=20, sd=1, n=100)
+# compute power generated for EACH height
+resv_results$power = power_gen_orig(resv_results$height, flow=resv_results$flow)
+
+# plot
+ggplot(resv_results, aes(height, power, col=flow))+geom_point(size=3)+labs(y="Power (KW)", x="Height (m)")
+
+# Unequal lengths - this will "work" but inputs get recycled unclear what is happening
+# NOT recommended
+
+eheight = seq(from=1, to=50)
+eflow = runif(min=0.1, max=2, n=100)
+resv_result = power_gen_orig(eheight, eflow)
+
+# better
+eheight = seq(from=1, to=50)
+eflow = runif(min=0.1, max=2, n=50)
+resv_result = power_gen_orig(eheight, eflow)
+
+# another example of the problem of unequal length inputs
+power_gen_orig(eheight, eflow, g=c(9,10,11))
+
+#better
+g = runif(min=8, max=10, n=50)
+resv_result = power_gen_orig(eheight, eflow, g)
+ggplot(resv_results, aes(height, power, col=flow))+geom_point(size=3)+labs(y="Power (KW)", x="Height (m)")
+
+
+```
+
+# Error Checking
+
+What will your function do if user gives you garbage data, imagine that you have a function that computes microbial growth rates with temperature
+
+* Two options
+
+<span style="color:skyblue">
+1. error-checking (nice)
+</span>
+
+ if temperature < -100 or > 100
+ 
+*  set results to NA
+*  or exit function with a warming
+ 
+<span style="color:skyblue"> 
+2. assume user reads the contract :) return unrealistic values
+</span>
+
+if input -999.0, will still try to output growth rate
+ 
+ 
+ Error-checking is helpful if you are going to build a model made up of many functions- why?
+ 
+
+# How to add error checking
+
+Consider this example (I'm going to put the function definition inline for now so you can easily see it - later we will save to our R subdirectory for reuse)
+
+```{r eval=TRUE, echo=TRUE  }
+
+power_gen = function(height, flow, rho=1000, g=9.8, Keff=0.8) {
+  # make sure inputs are positive and if not set as NA so result will be NA
+   if (height < 0) height=NA
+  
+ # an alterative is to exit the function prematurely 
+  if (flow < 0) return("Flow cannot be less than 0")
+  #    return("Height cannot be less than 0")
+      
+  # calculate power
+    result = rho * height * flow * g * Keff
+  return(result)
+}
+
+power_gen(2,3)
+power_gen(-2,3)
+power_gen(2,-3)
+```
+
+
+While this works for a case with one height and one flow
+It will have problems if we use multiple heights - (a later topic)
+
+A better implementation if you think the function might be run for multiple heights - YES you can do that
+
+```{r eval=TRUE, echo=TRUE  }
+
+power_gen = function(height, flow, rho=1000, g=9.8, Keff=0.8) {
+  # make sure inputs are positive and if not set as NA so result will be NA
+   height = ifelse( (height < 0), NA, height)
+  
+ # an alterative is to exit the function prematurely 
+  flow = ifelse((flow < 0), return("flow must be greater than zero"), flow)
+
+  #    return("Height cannot be less than 0")
+      
+  # calculate power
+    result = rho * height * flow * g * Keff
+  return(result)
+}
+
+power_gen(2,3)
+power_gen(-2,3)
+power_gen(2,-3)
+
+
+# note that this works (calculates power for each height)
+power_gen(height=c(1,4,5), flow=2)
+
+# and this works (calculates power for each flow rate)
+power_gen(height=4, flow=c(2,4,5))
+
+# and this calculates power for each combination of flow and height
+power_gen(height=c(4,5,6), flow=c(2,4,6))
+
+# but this doesn't work - why?
+power_gen(height=c(4,5,6, 8, 9, 20), flow=c(2,4,6))
+
+# we could add error checking to test for this
+
+power_gen = function(height, flow, rho=1000, g=9.8, Keff=0.8) {
+  
+  # make sure we have same number of flow and height's so we can match them
+  if (length(height) != length(flow)) return(" number of heights is different from number of flows")
+  # make sure inputs are positive and if not set as NA so result will be NA
+   height = ifelse( (height < 0), NA, height)
+  
+ # an alterative is to exit the function prematurely 
+  flow = ifelse((flow < 0), return("flow must be greater than zero"), flow)
+
+  #    return("Height cannot be less than 0")
+      
+  # calculate power
+    result = rho * height * flow * g * Keff
+  return(result)
+}
+
+power_gen(height=c(4,5,6, 8, 9, 20), flow=c(2,4,6))
+power_gen(height=c(4,5,6), flow=c(2,4,6))
+```
+
+See **power_gen.R** for file with error checking
+
+Error checking is good practice - and combinded with good documentation - makes programming much much easier!
+
+
+
+
