@@ -1,0 +1,273 @@
+---
+title: 'Data Types'
+author: "Naomi Tague"
+date: "January, 2021"
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo =TRUE)
+knitr::opts_chunk$set(error=TRUE)
+
+library(tidyverse)
+library(purrr)
+
+```
+
+# <span style="color:blue"> Data types 
+
+All programming languages use data-types, or structures to hold information
+
+* integer
+* floating point/ real / numeric
+* character 
+* string
+
+Often data types are multi-dimensional 
+Some useful ones in R
+
+* vector
+* matrix
+* data frame
+* tibble
+* factors
+* lists
+
+Programming often involves selecting and building data structures. Like the **res** matrix we built last class to hold the results from our **for** loop
+
+Good data structures are
+
+* as simple as possible
+* easy to understand (readable names)
+* easy to manipulate 
+* easy to visualize
+
+# <span style="color:blue"> Factors \span
+
+something that has different **classes** or **groups**
+useful for doing calculations with categories
+
+Here's an example:
+
+First lets look at a standard numeric vector
+
+```{r} 
+a = c(1.3, 1, 4, 1.3, 22)
+# compute the mean
+mean(a)
+```
+
+What if **a** is a factor
+
+What do commands like **mean** do
+```{r} 
+a = as.factor(a)
+# compute the mean
+mean(a)
+
+#why? lets look
+a
+
+
+
+
+```
+
+We can use **summary** with factors to get frequencies in each category (or “level” )
+
+
+
+```{r fishes}
+
+# create vector of possible fish 
+possible.fish = c("salmon","steelhead","shark","tuna","cod")
+
+# we can use sample to simulate a random recording of catch by fisherman, lets say we pick 20 fish from the net
+
+catch1 = base::sample(possible.fish, size=20, replace=T)
+# because possible.fish was a factor catch1 will be a factor
+catch1
+
+summary(catch1)
+# if we want summary to be more useful - make this a factor
+catch1 = as.factor(catch1)
+
+
+# to quickly get frequencies of different fish and to plot 
+summary(catch1)
+plot(catch1, col="blue")
+
+
+# we can also use summary to explore and return information about the distribution
+# mean frequency of a particular type of fish
+mean(summary(catch1))
+
+# maximum frequency
+max(summary(catch1))
+
+# which fish was most frequently caught
+which.max(summary(catch1))
+
+#to get just the name 
+names(which.max(summary(catch1)))
+
+# use results for creating text
+# sprintf creates a string %s mean use what ever is after the , to fill in a string
+plottitle=sprintf("We like %s", names(which.max(summary(catch1))))
+
+ggplot(data.frame(catch1=catch1), aes(catch1, fill=catch1))+geom_histogram(stat="count")+labs(title=plottitle)
+
+# you can also add numbers to the string
+plottitle=sprintf("We mostly caught %s \n max catch(%d)", names(which.max(summary(catch1))), max(summary(catch1)))
+ggplot(data.frame(catch1=catch1), aes(catch1, fill=catch1))+geom_histogram(stat="count")+labs(title=plottitle)
+
+#How do you figure out the rarest fish in our simulated ocean
+
+
+```
+
+# Aside **sprintf**
+
+some useful syntax if you want to generate strings
+
+* **%s** replace with a string
+* **%d** replace with an integer value
+* **%f** replace with a real value
+* **%4.1f** replace with a real value with 4 digist, two after decimal
+* **\\n** add a line return
+
+Try it
+
+make a string with **sprintf** and add to plot title
+
+
+# <span style="color:blue"> Functions with factors 
+
+Lets generate a function that makes use of categorical data
+species diversity is a good example
+
+"Simpson's Index (D) measures the probability that two individuals randomly selected from a sample will belong to the same species 
+
+Value is between 0 and 1, with lower values associated with *lower* diversity
+
+See 
+[Simpson Biodiversity](http://www.countrysideinfo.co.uk/simpsons.htm)
+
+
+```{r diversity, echo=TRUE}
+
+source("R/compute_simpson_index.R")
+compute_simpson_index
+
+
+possible.fish = as.factor(c("salmon","steelhead","shark","tuna","cod"))
+# simulate a random recording of catch by fisherman
+
+
+# note here is answer to above challenge
+catch1 = sample(possible.fish, size=10, prob = c(0.2, 0.2, 0.1, 0.1, 0.4), replace=T)
+# lets create a test case that should have low diversity, by repeating the same thing
+catch2 = c(rep("salmon", times=10), rep("cod", times=10))
+
+compute_simpson_index(catch1)
+compute_simpson_index(catch2)
+
+```
+
+
+Sometimes you don't want factors and R thinks something should be
+How to change back? **as.numeric** makes sense ...but
+
+
+
+```{r, echo=TRUE}
+
+a = as.factor(c(1.3, 1, 4, 1.3, 22))
+#sum(a)
+
+# try to make a numeric version from the factor
+b = as.numeric(a)
+sum(b)
+b
+
+# better
+b = as.character(a)
+b = as.numeric(b)
+b
+sum(b)
+```
+
+#  <span style="color:blue"> Returning multiple things from a function \span
+
+In R, to do this we use LISTS
+
+* Lists are the most “informal” data structures in R
+* List are really useful for keeping track of and organizing groups of things that are not all the same
+* A list could be a table where number of rows is different for each column
+* A list can have numeric, character, factors all mixed together
+* List are often used for returning more complex information from function (e.g. lm)
+
+```{r introlist, echo=TRUE}
+
+# make a list
+sale = list(id=2, quality="high", contents=c("apple","cherry"), cost=c(4,5))
+sale
+
+#ways to access elements
+sale$id
+sale$what
+
+# you can also access by list item number
+# the [x] denotes the xth item in the list
+sale[[3]]
+sale[["contents"]]
+
+
+# how do you get the second element in the vector that has the contents
+# there are two ways
+
+
+# add to a list
+sale$location = "Farmers market"
+sale
+# or remove
+sale$location = NULL
+sale
+
+# some tricky things
+# correct accessing items in list
+sale$cost
+sale[[4]]
+
+# works but
+#sale[4]
+
+
+sum(sale$cost)
+sum(sale[[4]])
+
+```
+
+
+# Using lists to return multiple items from a function
+
+We can use *lists* to return multiple,diverse pieces of information from our functions
+Lets start with diversity - many be want to know a bit more about the dataset
+
+* Simpson diversity
+* most frequent species
+* number of distinct species
+
+
+
+```{r diversitylist, echo=TRUE}
+
+# repeat with a list
+source("R/computediversity.R")
+
+computediversity
+
+computediversity(catch1)
+computediversity(catch2)
+```
+
+
