@@ -1,0 +1,129 @@
+---
+title: 'Testing'
+author: "Naomi Tague"
+date: "January, 2020"
+output:
+  slidy_presentation:
+   highlight: pygments
+  html_document: default
+  pdf_document: default
+  ioslides_presentation:
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo =TRUE)
+knitr::opts_chunk$set(error=TRUE)
+#knitr::opts_knit$set(root.dir = '/Users/christina/Desktop/Courses.local/ESM262n/docs/packages')
+library(tidyverse)
+library(devtools)
+library(testthat)
+
+```
+
+
+
+# <span style="color:orange">Testing in R</span>
+
+In R, *testthat* library 
+install and add this library
+
+If you are in the working directory where you’ve stored the files for your project you can use *testthat* to automate testing of your functions
+
+* need devtools and “testthat” libraries
+
+A few R commands that are useful
+
+* test_dir(“name”) :runs all tests in the “name” subdirectory  (all files beginning with the word “test”
+* test_file(“name”): runs all  the tests in a file called “name”
+
+Testing in R uses "expectation"
+
+# <span style="color:orange">Expectation</span>
+
+
+tests you can use to make sure your code is working the way you think it should be working
+
+* expect_true(condition)
+* expect_equal(value, value)
+* expect_match(string1, string2)
+* expect_null(value)
+* expect_length(object, n)
+
+
+
+```{r testingsimple, eval=TRUE, error=TRUE}
+
+
+# runs a test on a statement and checks to see if it is correct
+# this one should work
+expect_equal(2+2, 4)
+# this one should 'throw and error'
+expect_equal(2+5, 4)
+
+# we can also use expect_true
+# works with variables two
+a = 200
+expect_true(a > 2 )
+a = 0
+expect_true(a > 2 )
+
+# matches
+fish1 = "salmon"
+fish2 = "trout"
+expect_match(fish1, fish2)
+
+# length
+a = seq(from=1, to=10)
+expect_length(a, 10)
+expect_length(a, 11)
+
+# We can use expectation with functions 
+# and test just to make sure they are working as expected
+source("R/compute_NPV.R")
+futurevalue = 100
+expect_true(compute_NPV(value=futurevalue, time=10, discount=0.01) > 0)
+futurevalue = -100
+expect_true(compute_NPV(value=futurevalue, time=10, discount=0.01) > 0)
+
+# what if function returns a list?
+# we can use the buit in summary function to see how this works
+testdata = rnorm(mean=25, sd=3, n=100)
+summary(testdata)
+# it is actually returning a list, but what are the names?
+names(summary(testdata))
+# now we can specify them
+summary(testdata)["Max."]
+# and use in a test to make sure this function works -...hmm
+# well the max should be greater than the min right?
+
+expect_true((summary(testdata)["Max."]-summary(testdata)["Min."]) > 0)
+
+# lets create a function with an error 
+# imagine total recharge of water to soil after rain (in mm) is daily rainfall minus interception (in mm with default of 1mm) lost on any given day
+# lets define a function that returns total rainfall and total recharge given an input of
+# rainfall and then a value for interception
+
+effective_rain=function(rain, interception_loss=1) {
+  
+  # easy part - get total rain
+  totalrain = sum(rain)
+  
+  # interception happens everyday so we need a new vector
+  recharge = rain-interception_loss
+  totalrecharge = sum(recharge)
+  
+  return(list(totalrain=totalrain, totalrecharge=totalrecharge))}
+
+
+# lets do some simple test
+# if it never rains for 730 days then both should be zero
+raindata = rep(0, times=730)
+expect_that(effective_rain(raindata)$totalrain, equals(0))
+# so far so good, now for recharge
+
+raindata = rep(0, times=730)
+expect_that(effective_rain(raindata)$totalrecharge, equals(0))
+
+# what went wrong???
+```
