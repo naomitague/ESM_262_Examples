@@ -1,0 +1,18 @@
+Package: ESM262Examples
+Title: Examples for ESM 262
+Version: 0.0.0.9000
+Authors@R: 
+    person("Naomi", "Tague", email="tague@ucsb.edu", role=c("aut","cre"))
+Description: Provides example R code for ESM 262 and serves as an example package
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports: 
+    cli,
+    glue,
+    lifecycle,
+    purrr,
+    rlang,
+    withr
