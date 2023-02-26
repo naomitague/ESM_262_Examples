@@ -47,6 +47,6 @@ results$power = autopower(V=speeds, A=25, m=20000)
 
 # ALWAYS look at your results to make sure it make sense
 ggplot(results, aes(speed, power/1000))+geom_point()+labs(x="speed in m/s", y="power in kW")
-ggplot(results, aes(x="Across Speed",y=power/1000))+geom_boxplot()+labs(y="power in kW")
+ggplot(results, aes(x="Across Speed",y=power/1000))+geom_boxplot()+labs(y="power in kW", x="")
 
 ```

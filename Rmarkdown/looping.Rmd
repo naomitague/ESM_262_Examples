@@ -38,7 +38,7 @@ Mean highway speed is 100 km/hr
 
 ```{r sampling2, eval=TRUE, echo=TRUE}
 
-#source("../R/autopower.R")
+source("R/autopower.R")
 # generate a structure to store info on our possible cars
 possible_cars = data.frame(name = c("A","B","C"),mass=c(10000,65000,38000), area = c(22,30,22))
 
@@ -96,10 +96,12 @@ mean_speed = log(100*0.277)
 speeds = rlnorm(mean=mean_speed, sd=0.1*mean_speed, nsample)
 summary(speeds)
 
-plot(density(speeds), ylab="Distribution of Speeds in (m/s)")
+plot(density(speeds), ylab="Distribution of Speeds in (m/s)", main="Density Plot of Sampled Speeds")
 
 
-# how do we run each car for all speeds 
+# How do we run each car for all speeds?
+
+# BY HAND
 
 # first lets to it by hand for the first car - the first row in our possible cars matrix
 possible_cars[1,]
