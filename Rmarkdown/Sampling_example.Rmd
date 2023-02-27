@@ -26,7 +26,7 @@ Note documentation in the R markdown - and use of variables names
 
 ```{r sampling}
 
-source("R/autopower.R")
+source("../R/autopower.R")
 
 # generate sample speeds from a distribution
 nsample = 100
